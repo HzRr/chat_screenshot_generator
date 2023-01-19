@@ -1,16 +1,17 @@
 from PIL import Image, ImageDraw, ImageFont
 
 
-frame_color = 237, 237, 237, 255
+frame_color = (255, 255, 255, 255)
+frame_width = 760
 
 class BasicImage:
 
     def __init__(self, img_type: str, img_obj: Image.Image) -> None:
         self.img_type = img_type
         self.__image = img_obj
-        self.__x, self.__y = self.__image.size
+        self.width, self.height = self.__image.size
     
-    def paste(self, obj: Image.Image, pos: tuple) -> None:
+    def pasteto(self, obj: Image.Image, pos: tuple) -> None:
         """将self粘贴到传入对象obj上"""
         obj.paste(self.__image, box=pos)
 
@@ -69,24 +70,24 @@ class Frame(BasicImage):
         phone_header = PhoneHeader(self.information["PhoneHeader"])
         wechat_header = WechatHeader(self.information["WechatHeader"])
         wechat_footer = WechatFooter()
-        background_img_path = self.information["background_image_path"]
-        background_img = Image.new("RGBA", (760, 1275), color=(160, 160, 160, 255)) if background_img_path == "default" else self.generate_background_from_path(background_img_path)
-        self.__size = (760, 1560)
+        background_img_path = self.information["background_img_path"]
+        background_img = BasicImage("背景图片", Image.new("RGBA", (frame_width, 1275), color=frame_color)) if background_img_path == "default" else self.generate_background_from_path(background_img_path)
+        self.__size = (frame_width, 1560)
         self.__frame = Image.new("RGBA", self.__size, color=(160, 160, 160, 255))
-        self.__frame.paste(phone_header, (0, 0))
-        self.__frame.paste(wechat_header, (0, 60))
-        self.__frame.paste(background_img, (0, 168))       
-        self.__frame.paste(wechat_footer, (0, self.__size[1]-118))
+        offset = 0
+        for img in (phone_header, wechat_header, background_img, wechat_footer):
+            img.pasteto(self.__frame, (0, offset))
+            offset = offset + img.height + (1 if img.img_type in ("微信顶部图片", "背景图片") else 0)
         return self.__frame
 
     def generate_background_from_path(self, background_img_path) -> Image.Image:
-        return Image.open(background_img_path, "RGBA").resize(760, 1275)
+        return Image.open(background_img_path, "RGBA").resize(frame_width, 1275)
 
 class PhoneHeader(BasicImage):
     """手机顶部通知栏"""
     def __init__(self, information: dict) -> None:
         self.__fnt = ImageFont.truetype("fonts/simfang.ttf", 35)
-        self.__width = 760
+        self.__width = frame_width
         self.__height = 60
         self.information = information
         img_obj = self.generate()
@@ -103,7 +104,7 @@ class PhoneHeader(BasicImage):
         phone_header = Image.new("RGBA", (self.__width, self.__height), color=frame_color)
         phone_header.paste(operator, (0, 0), mask=operator)
         x = self.__width
-        for img in [time, battery, signal, wifi]:
+        for img in [time, battery, wifi, signal]:
             x = x - img.width
             y = int((self.__height - img.height)/2)
             phone_header.paste(img, box=(x, y), mask=img)
@@ -125,8 +126,12 @@ class PhoneHeader(BasicImage):
     def generate_battery_img(self, information) -> Image.Image:
         battery = Image.open("images/bar/battery.png")
         d = ImageDraw.Draw(battery)
-        xy = [(2, 5), (int(information*battery.width-12), battery.height-6)]
-        d.rounded_rectangle(xy, radius=8, fill=(0,0,0,255))
+        x, y = 3, 4
+        offset = 15
+        radius = 8
+        xy = [(x, y), (int(x+information*(battery.width-offset)), battery.height-y-1)]
+        color = (0, 0, 0, 255) if information > 0.3 else (232, 191, 23, 255) if information > 0.15 else(231, 9, 8, 225)
+        d.rounded_rectangle(xy, radius=radius, fill=color)
         return battery
 
     def generate_time_img(self, information) -> Image.Image:
@@ -140,7 +145,7 @@ class WechatHeader(BasicImage):
     """微信顶部图片"""
     def __init__(self, information: dict) -> None:
         self.__fnt = ImageFont.truetype("fonts/simhei.ttf", 55)
-        self.__width = 760
+        self.__width = frame_width
         self.__height = 105
         self.information = information
         img_obj = self.generate()
@@ -166,7 +171,7 @@ class WechatFooter(BasicImage):
         super().__init__(img_type="微信底部图片", img_obj=img_obj)
     
     def generate(self) -> Image.Image:
-        pass
+        return Image.open("images/bar/wechat_footer.png")
 
 class TimeNotice(BasicImage):
     """时间通知"""
@@ -181,9 +186,9 @@ class TimeNotice(BasicImage):
 background_info = {
     "PhoneHeader": {
         "operator": "中国移动",
-        "signal": 4,
-        "wifi": 3,
-        "battery": 1,
+        "signal": 3,
+        "wifi": 1,
+        "battery": 0.25,
         "time": "14:02",
     },
     "WechatHeader": {
@@ -194,5 +199,5 @@ background_info = {
 '''
 background = Background(background_info)
 background.show()'''
-img = WechatHeader(background_info["WechatHeader"])
+img = Frame(background_info)
 img.show()

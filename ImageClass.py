@@ -1,8 +1,9 @@
 from PIL import Image, ImageDraw, ImageFont
 
 
-frame_color = (255, 255, 255, 255)
-frame_width = 760
+frame_color = (237, 237, 237, 255)  # 框架背景色
+frame_width = 760                   # 框架宽度
+text_width = 493                    # 文本框宽度
 
 class BasicImage:
 
@@ -26,7 +27,11 @@ class SimpleText(BasicImage):
         super().__init__(img_type="单文本消息", img_obj=img_obj)
     
     def generate(self) -> Image.Image:
-        pass
+        w, h = 81, 81   # 头像尺寸
+        profile_image = Image.open(f"images/senders/{self.information['sender_id']}.png").resize(w, h)
+        fnt = ImageFont.truetype(self.information["font"], self.information["font_size"])   # 自定义字体
+        h = fnt.getsize()
+        simple_text_image = Image.new("RGBA", (text_width, h))
 
 class RichText(BasicImage):
     """富文本消息"""
@@ -183,6 +188,7 @@ class TimeNotice(BasicImage):
     def generate(self) -> Image.Image:
         pass
 
+'''
 background_info = {
     "PhoneHeader": {
         "operator": "中国移动",
@@ -196,8 +202,15 @@ background_info = {
     },
     "background_img_path": "default",
 }
-'''
-background = Background(background_info)
-background.show()'''
 img = Frame(background_info)
+img.show()
+'''
+
+text_info = {
+    "sender_id": 1,
+    "font": "fonts/simfang.ttf",
+    "font_size": 20,
+    "text": "你好世界你好世界你好世界你好世界你好世界你好世界你好世界！！！！！",
+}
+img = SimpleText(text_info)
 img.show()

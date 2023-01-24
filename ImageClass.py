@@ -1,9 +1,37 @@
 from PIL import Image, ImageDraw, ImageFont
+from typing import Union
+import re
+import os
+import imgkit
 
 
 frame_color = (237, 237, 237, 255)  # 框架背景色
 frame_width = 760                   # 框架宽度
-text_width = 493                    # 文本框宽度
+message_offset = 25                 # 消息位置偏移量
+
+avatar_html_path = "htmls/avatar"               # 头像
+SimpleText_html_path = "htmls/SimpleText"       # 他人单文本消息
+SimpleText2_html_path = "htmls/SimpleText2"     # 本人单文本消息
+
+def read_and_replace_html(replace_params_dict: dict, html_path: str) -> str:
+    with open(html_path, "r", encoding="utf-8") as fp:
+        html = fp.read()
+    for key in replace_params_dict:
+        pattern = f"/{key}/"
+        html = re.sub(pattern, str(replace_params_dict[key]), html)
+    return html
+
+def generate_image_by_html(replace_params_dict: dict, html_path: str) -> Image.Image:
+    html = read_and_replace_html(replace_params_dict, html_path)
+    out_path = "user_images/temp.png"
+    imgkit.from_string(html, out_path)
+    return Image.open(out_path, "r")
+
+def get_avatar_link_by_id(id: Union[str, int]) -> str:
+    path = os.getcwd().replace("\\", "/") + f"/user_images/senders_images/avatar-{str(id)}.png"
+    if not os.path.exists(path):
+        path = os.getcwd().replace("\\", "/") + "/user_images/senders_images/avatar-default.png"
+    return path
 
 class BasicImage:
 
@@ -27,11 +55,41 @@ class SimpleText(BasicImage):
         super().__init__(img_type="单文本消息", img_obj=img_obj)
     
     def generate(self) -> Image.Image:
-        w, h = 81, 81   # 头像尺寸
-        profile_image = Image.open(f"images/senders/{self.information['sender_id']}.png").resize(w, h)
-        fnt = ImageFont.truetype(self.information["font"], self.information["font_size"])   # 自定义字体
-        h = fnt.getsize()
-        simple_text_image = Image.new("RGBA", (text_width, h))
+        w, h = 90, 90   # 头像尺寸
+        # 文本框
+        # 头像
+        replace_params_dict = {
+            "background-color": f"rgba{frame_color}",
+            "avatar-link": get_avatar_link_by_id(self.information["sender_id"]),
+            "avatar-width": w,
+            "avatar-height": h
+        }
+        avatar = generate_image_by_html(replace_params_dict, avatar_html_path).crop((0,0,w,h))
+        
+        if self.information["is_me"] is not True:
+            # 他人消息
+            replace_params_dict = {
+                "background-color": f"rgba{frame_color}",
+                "sender-name": self.information["sender_name"],
+                "text": self.information["text"]
+            }
+            chat_box = generate_image_by_html(replace_params_dict, SimpleText_html_path)
+            img = Image.new("RGBA", (frame_width, chat_box.height+message_offset), frame_color)
+            img.paste(chat_box, (message_offset + w, 0))
+            img.paste(avatar, (message_offset,0), mask=avatar)
+
+        else:
+            # 本人消息
+            replace_params_dict = {
+                "background-color": f"rgba{frame_color}",
+                "text": self.information["text"]
+            }
+            chat_box = generate_image_by_html(replace_params_dict, SimpleText2_html_path)
+            img = Image.new("RGBA", (frame_width, chat_box.height+message_offset), frame_color)
+            img.paste(chat_box, (frame_width-message_offset-w-chat_box.width, 0))
+            img.paste(avatar, (frame_width-message_offset-w, 0), mask=avatar)
+
+        return img
 
 class RichText(BasicImage):
     """富文本消息"""
@@ -205,12 +263,13 @@ background_info = {
 img = Frame(background_info)
 img.show()
 '''
-
+'''
 text_info = {
+    "is_me": False,
     "sender_id": 1,
-    "font": "fonts/simfang.ttf",
-    "font_size": 20,
+    "sender_name": "测试",
+    "chatbox_color": "white",
     "text": "你好世界你好世界你好世界你好世界你好世界你好世界你好世界！！！！！",
 }
 img = SimpleText(text_info)
-img.show()
+img.show()'''

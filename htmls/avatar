@@ -1,0 +1,25 @@
+<html>
+<head>
+<style>
+body {
+    margin: 0px;
+    width: 0px;
+    background-color: /background-color/;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  margin-right: 28px;
+  border-radius: 12px;
+  background-color: /background-color/;
+}
+
+</style>
+</head>
+<body>
+<div>
+  <img class="avatar" src="/avatar-link/" width="/avatar-width/" height="/avatar-height/">
+</div>
+</body>
+</html>

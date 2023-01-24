@@ -1,0 +1,42 @@
+<html>
+<head>
+<style>
+head, body {
+    margin: 0px;
+    width: 1000px;
+    background-color: /background-color/;
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 14px 14px 14px 14px;
+  border-color: transparent transparent transparent rgb(149, 236, 105);
+  position: absolute;
+  margin-top: 26px;
+  right: 0;
+}
+
+.chat-box {
+  background-color: rgb(149, 236, 105);
+  width: 493px;
+  padding: 20px;
+  margin-left: 14px;
+  border-radius: 10px;
+  font-size: 35px;
+  position: absolute;
+  right: 28px;
+}
+
+</style>
+</head>
+<body>
+<div>
+    <div class="triangle"></div>
+    <div class="chat-box" color="/chatbox_color/">
+      /text/
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<html>
+<head>
+<style>
+body {
+    margin: 0px;
+    width: 1000px;
+    background-color: /background-color/;
+}
+
+.sender-name {
+  margin-left: 23px;
+  font-size: 25px;
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 14px 14px 14px 0;
+  border-color: transparent white transparent transparent;
+  position: absolute;
+  margin-top: 34px;
+}
+
+.chat-box {
+  background-color: white;
+  width: 493px;
+  padding: 20px;
+  margin-top: 9px;
+  margin-left: 14px;
+  border-radius: 10px;
+  font-size: 35px;
+  position: relative;
+}
+
+</style>
+</head>
+<body>
+<div>
+    <div class="sender-name">/sender-name/</div>
+    <div class="triangle"></div>
+    <div class="chat-box" color="/chatbox_color/">
+      /text/
+    </div>
+</div>
+</body>
+</html>
